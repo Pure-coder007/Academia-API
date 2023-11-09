@@ -72,9 +72,10 @@ def login_admin():
 
     if bcrypt.check_password_hash(admin.password_hash, password):
         access_token = create_access_token(identity=admin.id)
-        return jsonify({'access_token': access_token}), 200
+        return jsonify({'access_token': access_token, 
+                        'Login': 'Successful'}), 200
     else:
-        return jsonify({'message': 'Invalid email or password', 'Login' : 'Successful'}), 401
+        return jsonify({'message': 'Invalid email or password'}), 401
 
 
 
@@ -286,7 +287,7 @@ def view_all_students():
 
 
 
-# Update studnet profile
+# Update studt profile
 @auth.route('/update_profile', methods=['PUT'])
 @jwt_required()
 def update_profile():
