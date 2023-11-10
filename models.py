@@ -153,7 +153,7 @@ def get_courses_for_student(student_id):
     try:
         connection = mysql.connector.connect(**config)
         cursor = connection.cursor(dictionary=True)
-        query = "SELECT * FROM student_courses WHERE student_id = %s"
+        query = "SELECT * FROM the_student_courses WHERE student_id = %s"
         cursor.execute(query, (student_id,))
         courses = cursor.fetchall()
         return courses
@@ -199,7 +199,7 @@ def get_all_students():
                    GROUP_CONCAT(DISTINCT sc.course_name) AS course_names, 
                    GROUP_CONCAT(DISTINCT sc.course_unit) AS course_units
             FROM students s
-            LEFT JOIN student_courses sc ON s.id = sc.student_id
+            LEFT JOIN the_student_courses sc ON s.id = sc.student_id
             GROUP BY s.id, s.first_name, s.last_name, s.email, s.matric_no
         """
         cursor.execute(query)

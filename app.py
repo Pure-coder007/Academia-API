@@ -109,6 +109,7 @@ def access_to_matric_no():
     password = data['password']
 
     student = get_student(email)
+    print('studentttt', student)
     if student is None:
         return jsonify({'message': 'Invalid email or password'}), 401
 
@@ -173,10 +174,10 @@ def show_courses():
 def register_courses():
     data = request.get_json()
     student_id = get_jwt_identity()
-    course_id = data['course_id']
-    course_code = data['course_code']
-    course_name = data['course_name']
-    course_unit = data['course_unit']
+    course_code = data.get('course_code')
+    course_name = data.get('course_name')
+    course_unit = data.get('course_unit')
+    matric_no = get_matric_no(student_id)
 
     connection = mysql.connector.connect(**config)
     cursor = connection.cursor()
@@ -192,25 +193,32 @@ def register_courses():
     matric_no = student_result[0]
 
     # Insert the course record with the matric_no
-    query = "INSERT INTO the_student_courses (student_id, course_id, course_code, course_name, course_unit, matric_no) VALUES (%s, %s, %s, %s, %s, %s)"
-    cursor.execute(query, (student_id, course_id, course_code, course_name, course_unit, matric_no))
+    query = "INSERT INTO the_student_courses (student_id, course_code, course_name, course_unit, matric_no) VALUES (%s, %s, %s, %s, %s)"
+    cursor.execute(query, (student_id, course_code, course_name, course_unit, matric_no))
 
     connection.commit()
     cursor.close()
     connection.close()
-
-    return jsonify({'message': 'Course added successfully'}), 201
+    print('matric_no', matric_no, 'course_code', course_code, 'course_name', course_name, 'course_unit', course_unit)
+    return jsonify({
+        'message': 'Course added successfully', 
+        'course_name': course_name,
+        'course_code': course_code,
+        'course_unit': course_unit,
+        'matric_no' : matric_no }), 201
 
 
 @auth.route('/get_courses', methods=['GET'])
 @jwt_required()
 def get_courses():
+    data = request.get_json()
     student_id = get_jwt_identity()
+    matric_no = data.get('matric_no')
 
+    courses = get_courses_for_student(matric_no)
+    
     if not student_id:
         return jsonify({'message': 'You are not allowed to view this information!', 'status': 401}), 401
-    
-    courses = get_courses_for_student(student_id)
 
     if courses is not None:
         return jsonify({'courses': courses}), 200
@@ -231,10 +239,11 @@ def view_profile():
         return jsonify({'message': 'You are not allowed to view this information!', 'status': 401}), 401
     
     student = get_one_student(student_id)
+    courses = get_courses_for_student(student_id)
     print('studentttt', student)
+    print('courses', courses)
 
     if student is not None:
-        courses = get_courses_for_student(student_id)
         student_data = {
             'student_id': student[0],
             'first_name': student[1],
@@ -287,7 +296,7 @@ def view_all_students():
 
 
 
-# Update studt profile
+# Update student profile
 @auth.route('/update_profile', methods=['PUT'])
 @jwt_required()
 def update_profile():
@@ -328,13 +337,13 @@ def view_students_for_course(course_id):
 
 
 # Admins can view all courses a student registered for
-@auth.route('/view_courses_for_student/<student_id>', methods=['GET'])
+@auth.route('/view_courses_for_student/<matric_no>', methods=['GET'])
 @jwt_required()
-def view_courses_for_student(student_id):
+def view_courses_for_student(matric_no):
     connection = mysql.connector.connect(**config)
     cursor = connection.cursor(dictionary=True)
-    query = "SELECT * FROM the_student_courses WHERE student_id = %s"
-    cursor.execute(query, (student_id,))
+    query = "SELECT * FROM the_student_courses WHERE matric_no = %s"
+    cursor.execute(query, (matric_no,))
     courses = cursor.fetchall()
     if not courses:
         return jsonify({'message': 'No course registered for this student', 'status': 404}), 404
