@@ -1,11 +1,18 @@
 import mysql.connector
 from datetime import datetime
 
-config = {
-    'user': 'root',
-    'password': 'language007',
-    'host': 'localhost',
-    'database': 'academia',
+# config = {
+#     'user': 'root',
+#     'password': 'language007',
+#     'host': 'localhost',
+#     'database': 'academia',
+# }
+
+config = {  
+    'user': 'kingsley_db',
+    'password': 'language',
+    'host': 'db4free.net',
+    'database': 'academia_api',
 }
 
 
